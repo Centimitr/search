@@ -74,34 +74,100 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
+def generalSimpleSearch(problem, struct):
+    start = problem.getStartState()
+    path = []
+    struct.push((start, path))
+    closed = set()
+
+    while not struct.isEmpty():
+        cur, path = struct.pop()
+        if cur in closed:
+            continue
+        closed.add(cur)
+
+        if problem.isGoalState(cur):
+            return path
+
+        succs = problem.getSuccessors(cur)
+        for nxt, action, _ in succs:
+            if nxt not in closed:
+                struct.push((nxt, path + [action]))
+
+
+def generalPrioritysSearch(problem, struct):
+    start = problem.getStartState()
+    path = []
+    struct.push((start, path), 0)
+    closed = set()
+
+    while not struct.isEmpty():
+        cur, path = struct.pop()
+        if cur in closed:
+            continue
+        closed.add(cur)
+
+        if problem.isGoalState(cur):
+            return path
+
+        succs = problem.getSuccessors(cur)
+        for nxt, action, cost in succs:
+            if nxt not in closed:
+                c = cost + problem.getCostOfActions(path)
+                struct.push((nxt, path + [action]), c)
+
+
+def generalHSearch(problem, struct, hfn):
+    start = problem.getStartState()
+    path = []
+    struct.push((start, path), 0)
+    closed = set()
+
+    while not struct.isEmpty():
+        cur, path = struct.pop()
+        if cur in closed:
+            continue
+        closed.add(cur)
+
+        if problem.isGoalState(cur):
+            return path
+
+        succs = problem.getSuccessors(cur)
+        for nxt, action, cost in succs:
+            if nxt not in closed:
+                c = cost + problem.getCostOfActions(path) + hfn(nxt, problem)
+                struct.push((nxt, path + [action]), c)
+
+
 def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # s = util.Stack()
+    # start = problem.getStartState()
+    # path = []
+    # s.push((start, path))
+    # closed = set()
+    #
+    # while not s.isEmpty():
+    #     cur, path = s.pop()
+    #     if cur in closed:
+    #         continue
+    #     closed.add(cur)
+    #
+    #     if problem.isGoalState(cur):
+    #         return path
+    #
+    #     succs = problem.getSuccessors(cur)
+    #     for nxt, action, _ in succs:
+    #         if nxt not in closed:
+    #             s.push((nxt, path + [action]))
+    return generalSimpleSearch(problem, util.Stack())
 
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return generalSimpleSearch(problem, util.Queue())
 
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return generalPrioritysSearch(problem, util.PriorityQueue())
 
 
 def nullHeuristic(state, problem=None):
@@ -115,7 +181,7 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return generalHSearch(problem, util.PriorityQueue(), heuristic)
 
 
 # Abbreviations
