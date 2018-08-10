@@ -140,25 +140,6 @@ def generalHSearch(problem, struct, hfn):
 
 
 def depthFirstSearch(problem):
-    # s = util.Stack()
-    # start = problem.getStartState()
-    # path = []
-    # s.push((start, path))
-    # closed = set()
-    #
-    # while not s.isEmpty():
-    #     cur, path = s.pop()
-    #     if cur in closed:
-    #         continue
-    #     closed.add(cur)
-    #
-    #     if problem.isGoalState(cur):
-    #         return path
-    #
-    #     succs = problem.getSuccessors(cur)
-    #     for nxt, action, _ in succs:
-    #         if nxt not in closed:
-    #             s.push((nxt, path + [action]))
     return generalSimpleSearch(problem, util.Stack())
 
 
