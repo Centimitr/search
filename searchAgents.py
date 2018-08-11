@@ -297,22 +297,21 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0  # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
-        markedCorners = ()
-        self.startState = (self.startingPosition, markedCorners)
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return self.startState
+        # corners: tuple immutable
+        return self.startingPosition, self.corners
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        _, marked = state
-        return len(marked) == 4
+        _, restCorners = state
+        return len(restCorners) == 0
 
     def getSuccessors(self, state):
         """
@@ -324,23 +323,25 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
+
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            ((x0, y0), marked) = state
+
+            (x0, y0), restCorners = state
+
             dx, dy = Actions.directionToVector(action)
             x, y = int(x0 + dx), int(y0 + dy)
 
-            hitsWall = self.walls[x0][y0]
+            hitsWall = self.walls[x][y]
             if hitsWall:
                 continue
 
             pos = x, y
-            if pos in self.corners and pos not in marked:
-                marked = marked + (pos,)
+            restCorners = tuple(c for c in restCorners if c != pos)
             cost = 1
-            successors.append(((pos, marked), action, cost))
+            successors.append(((pos, restCorners), action, cost))
 
         self._expanded += 1  # DO NOT CHANGE
         return successors
@@ -375,37 +376,38 @@ def cornersHeuristic(state, problem):
     corners = problem.corners  # These are the corner coordinates
     walls = problem.walls  # These are the walls of the maze, as a Grid (game.py)
 
-    pos, marked = state
-    unmarked = []
+    pos, restCorners = state
+    rest = list(restCorners)
 
-    for c in corners:
-        if c not in marked:
-            unmarked.append(c)
-
+    # 663 nodes
     def cost(p1, p2):
         d = util.manhattanDistance(p1, p2)
         x1, y1 = p1
         x2, y2 = p2
-        num = 0
+        num = 0  # across wall number
         for x in xrange(x1, x2):
             for y in xrange(y1, y2):
                 if walls[x][y]:
                     num += 1
-        return d + num * 3
-        # return d
+        return d + num
 
+    # min distance one by one
     h = 0
     cur = pos
-    while unmarked:
-        ds = [cost(c, cur) for c in unmarked]
+    while rest:
+        ds = [cost(c, cur) for c in rest]
         minD = min(ds)
-        nxt = unmarked[ds.index(minD)]
-        unmarked.remove(nxt)
+        nxt = rest[ds.index(minD)]
+        rest.remove(nxt)
 
         cur = nxt
         h += minD
 
     return h
+
+    # 1136 nodes
+    # pos, restCorners = state
+    # return max([0] + [util.manhattanDistance(pos, c) for c in restCorners])
 
 
 class AStarCornersAgent(SearchAgent):
@@ -506,7 +508,7 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
 
-    return max([mazeDistance(position, food, problem.startingGameState) for food in foodGrid.asList()] + [0])
+    return max([0] + [mazeDistance(position, food, problem.startingGameState) for food in foodGrid.asList()])
 
 
 class ClosestDotSearchAgent(SearchAgent):

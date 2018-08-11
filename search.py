@@ -76,11 +76,12 @@ def tinyMazeSearch(problem):
 
 def search(problem, struct):
     start = problem.getStartState()
+    # state, path, formerPath, cost
     struct.push((start, [], [], 0))
     closed = set()
 
     while not struct.isEmpty():
-        cur, path, _, _2 = struct.pop()
+        cur, path, _, __ = struct.pop()
         if cur in closed:
             continue
         closed.add(cur)
