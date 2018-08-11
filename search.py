@@ -74,58 +74,13 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-# def generalSimpleSearch(problem, struct):
-#     start = problem.getStartState()
-#     path = []
-#     struct.push((start, path))
-#     closed = set()
-#
-#     while not struct.isEmpty():
-#         cur, path = struct.pop()
-#         if cur in closed:
-#             continue
-#         closed.add(cur)
-#
-#         if problem.isGoalState(cur):
-#             return path
-#
-#         succs = problem.getSuccessors(cur)
-#         for nxt, action, _ in succs:
-#             if nxt not in closed:
-#                 struct.push((nxt, path + [action]))
-
-
-#
-# def generalPrioritysSearch(problem, struct):
-#     start = problem.getStartState()
-#     path = []
-#     struct.push((start, path), 0)
-#     closed = set()
-#
-#     while not struct.isEmpty():
-#         cur, path = struct.pop()
-#         if cur in closed:
-#             continue
-#         closed.add(cur)
-#
-#         if problem.isGoalState(cur):
-#             return path
-#
-#         succs = problem.getSuccessors(cur)
-#         for nxt, action, cost in succs:
-#             if nxt not in closed:
-#                 c = cost + problem.getCostOfActions(path)
-#                 struct.push((nxt, path + [action]), c)
-
-
-def generalHSearch(problem, struct):
+def search(problem, struct):
     start = problem.getStartState()
-    path = []
-    struct.push((start, path, ([], 0)))
+    struct.push((start, [], [], 0))
     closed = set()
 
     while not struct.isEmpty():
-        cur, path, _ = struct.pop()
+        cur, path, _, _2 = struct.pop()
         if cur in closed:
             continue
         closed.add(cur)
@@ -136,23 +91,20 @@ def generalHSearch(problem, struct):
         succs = problem.getSuccessors(cur)
         for nxt, action, cost in succs:
             if nxt not in closed:
-                struct.push((nxt, path + [action], (path, cost)))
+                struct.push((nxt, path + [action], path, cost))
 
 
 def depthFirstSearch(problem):
-    return generalHSearch(problem, util.Stack())
+    return search(problem, util.Stack())
 
 
 def breadthFirstSearch(problem):
-    return generalHSearch(problem, util.Queue())
+    return search(problem, util.Queue())
 
 
 def uniformCostSearch(problem):
-    def fn(item):
-        nxt, _, (path, cost) = item
-        return cost + problem.getCostOfActions(path)
-
-    return generalHSearch(problem, util.PriorityQueueWithFunction(fn))
+    return search(problem, util.PriorityQueueWithFunction(
+        lambda (nxt, _, path, cost): cost + problem.getCostOfActions(path)))
 
 
 def nullHeuristic(state, problem=None):
@@ -165,15 +117,8 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-
-    def fn(item):
-        nxt, _, params = item
-        # if not params:
-        #     return 0
-        path, cost = params
-        return cost + problem.getCostOfActions(path) + heuristic(nxt, problem)
-
-    return generalHSearch(problem, util.PriorityQueueWithFunction(fn))
+    return search(problem, util.PriorityQueueWithFunction(
+        lambda (nxt, _, path, cost): cost + problem.getCostOfActions(path) + heuristic(nxt, problem)))
 
 
 # Abbreviations
